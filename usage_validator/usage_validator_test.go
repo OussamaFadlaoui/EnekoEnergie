@@ -1,4 +1,4 @@
-package utils
+package usage_validator
 
 import (
 	"fmt"

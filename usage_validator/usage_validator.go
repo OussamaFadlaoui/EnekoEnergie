@@ -1,4 +1,4 @@
-package utils
+package usage_validator
 
 func IsValidUsageSegment(usageCalculated int) bool {
 	invalidUsageSegmentValidators := []func(int) bool{
