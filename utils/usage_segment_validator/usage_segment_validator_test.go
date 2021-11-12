@@ -8,8 +8,8 @@ import (
 
 func TestValidUsageSegmentValidator(t *testing.T) {
 	usageSegmentsData := []struct {
-		testCase string
-		testValue int
+		testCaseDescriptor string
+		testValue          int
 		shouldBeValid bool
 	} {
 		{ "valid usage segment", 30, true },
@@ -17,10 +17,10 @@ func TestValidUsageSegmentValidator(t *testing.T) {
 		{ "invalid usage segment (>100)", 101, false },
 	}
 
-	for _, usageSegmentData := range usageSegmentsData {
-		result := isValidUsageSegment(usageSegmentData.testValue)
+	for _, testCase := range usageSegmentsData {
+		result := IsValidUsageSegment(testCase.testValue)
 
-		assert.Equal(t, result, usageSegmentData.shouldBeValid,
-			fmt.Sprintf("Unexpected usage segment validation result for case: %v", usageSegmentData.testCase))
+		assert.Equal(t, result, testCase.shouldBeValid,
+			fmt.Sprintf("Unexpected usage segment validation result for case: %v", testCase.testCaseDescriptor))
 	}
 }

@@ -1,6 +1,6 @@
 package utils
 
-func isValidUsageSegment(usageCalculated int) bool {
+func IsValidUsageSegment(usageCalculated int) bool {
 	invalidUsageSegmentValidators := []func(int)bool{
 		func(num int)bool { return num >= 0 && num <= 100 },
 	}
