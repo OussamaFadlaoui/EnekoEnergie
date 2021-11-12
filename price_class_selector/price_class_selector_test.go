@@ -10,10 +10,10 @@ func TestGiveCorrectPrice(t *testing.T) {
 	priceClassReadingData := []struct {
 		testCaseDescriptor string
 		unixTimestamp      int64
-		meteringPointId int
-		expectedPrice float64
-		shouldBeValid bool
-	} {
+		meteringPointId    int
+		expectedPrice      float64
+		shouldBeValid      bool
+	}{
 		{
 			"electric price for weekday after 7 AM and before 11 PM w/correct price class",
 			1415964600,
