@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func Check(err error, msg string) {
+func Check(err error, msg ... string) {
 	if err != nil {
 		fmt.Println(err)
 		fmt.Println(msg)
