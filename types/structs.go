@@ -1,4 +1,4 @@
-package utils
+package types
 
 type ReadingPoint struct {
 	MeteringPointId int
@@ -7,7 +7,7 @@ type ReadingPoint struct {
 	CreatedAt    int64
 }
 
-type UsageSegmentCollection struct {
-	MeteringPointId int
-	UsageSegments 	[]int
+type UsageSegment struct {
+	Usage        int
+	PricePerUnit float64
 }
