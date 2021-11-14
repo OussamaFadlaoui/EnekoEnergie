@@ -1,8 +1,8 @@
 package helpers
 
-func Contains(haystack []int, needle int) bool {
-	for i := range haystack {
-		if i == needle {
+func ArrContains(haystack []int, needle int) bool {
+	for _, element := range haystack {
+		if element == needle {
 			return true
 		}
 	}
@@ -10,14 +10,26 @@ func Contains(haystack []int, needle int) bool {
 	return false
 }
 
-func ContainsAll(haystack []int, needles ... int) bool {
-	flagAll := true
-
-	for needle := range needles {
-		if !Contains(haystack, needle) {
-			flagAll = false
+func ArrContainsAll(haystack []int, needles ... int) bool {
+	for _, needle := range needles {
+		if !ArrContains(haystack, needle) {
+			return false
 		}
 	}
 
-	return flagAll
+	return true
+}
+
+func ArrContainsAny(haystack []int, needles ... int) bool {
+	for _, needle := range needles {
+		if ArrContains(haystack, needle) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func ArrContainsNone(haystack []int, needles ... int) bool {
+	return !ArrContainsAny(haystack, needles...)
 }
