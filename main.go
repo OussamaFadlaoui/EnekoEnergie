@@ -24,7 +24,7 @@ func main() {
 	var calculatedUsageSegment int
 	var usageSegments = make(map[int][]types.UsageSegment)
 	var invalidUsageSegmentIndices = make(map[int][]int)
-	var mtrngPointUsgSegmentCounters = make(map[int]int)
+	var usageSegmentCounters = make(map[int]int)
 	var flagSkipNextReading bool
 	var flagSetUsageSegmentInBuffer bool
 	var usageSegmentInBuffer int
@@ -53,22 +53,23 @@ func main() {
 
 		nextReading = helpers.UnmarshalReadingPoint(nextReadingRaw)
 		pointId := currentReading.MeteringPointId
-		curUsageIndex := mtrngPointUsgSegmentCounters[pointId]
+		curUsageIndex := usageSegmentCounters[pointId]
 		pricePerUnit := price_class_selector.GiveCorrectPrice(currentReading.CreatedAt, currentReading.MeteringTypeId)
 
 		// Flag found for this reading being invalid due to generating an invalid
-		// usage segment value
+		// usage segment value or for a usage segment that's known from the last
+		// reading
 		if flagSkipNextReading || flagSetUsageSegmentInBuffer {
 			if flagSetUsageSegmentInBuffer {
 				usageSegments[pointId] = append(usageSegments[pointId], types.UsageSegment{
 					Usage:        usageSegmentInBuffer,
 					PricePerUnit: pricePerUnit,
 				})
-				mtrngPointUsgSegmentCounters[pointId]++
 			}
 
 			lastReadingPoint = nextReading
 			lineCount++
+			usageSegmentCounters[pointId]++
 
 			flagSkipNextReading = false
 			flagSetUsageSegmentInBuffer = false
@@ -77,7 +78,6 @@ func main() {
 
 		if nextReading.MeteringPointId != currentReading.MeteringPointId {
 			lastReadingPoint = nextReading
-			mtrngPointUsgSegmentCounters[pointId]++
 			lineCount++
 			continue
 		}
@@ -104,6 +104,7 @@ func main() {
 				usageSegments[pointId] = append(usageSegments[pointId], invalidUsageSegmentPlaceholder)
 				usageSegments[pointId] = append(usageSegments[pointId], invalidUsageSegmentPlaceholder)
 				invalidUsageSegmentIndices[pointId] = append(invalidUsageSegmentIndices[pointId], 0, 1)
+				usageSegmentCounters[pointId]++
 				flagSkipNextReading = true
 				lastReadingPoint = nextReading
 				continue
@@ -167,7 +168,7 @@ func main() {
 
 		lastReadingPoint = nextReading
 		lineCount++
-		mtrngPointUsgSegmentCounters[pointId]++
+		usageSegmentCounters[pointId]++
 	}
 
 	for _, segments := range usageSegments {
@@ -176,6 +177,8 @@ func main() {
 		}
 		fmt.Printf("Count: %v\n", len(segments))
 	}
+
+	
 
 	fmt.Println("Finished reading file")
 	err = inputFile.Close()
