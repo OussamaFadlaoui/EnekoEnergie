@@ -97,19 +97,21 @@ func main() {
 				lastReadingPoint = nextReading
 				continue
 
-			} else if curUsageIndex == 2 && len(invalidUsageSegmentIndices[pointId]) == 2 {
+			} else if curUsageIndex == 2 && len(invalidUsageSegmentIndices[pointId]) == 0 {
 				firstSegmentUsage := usageSegments[pointId][0].Usage
-				linearValue := helpers.CapUsageSegment(firstSegmentUsage)
-				usageSegments[pointId][curUsageIndex] = types.UsageSegment{
-					Usage:        linearValue,
+				usageSegments[pointId][1] = types.UsageSegment{
+					Usage:        helpers.CapUsageSegment(firstSegmentUsage),
 					PricePerUnit: pricePerUnit,
 				}
 
-				// TODO append current instead of index reference
-				usageSegments[pointId][curUsageIndex] = types.UsageSegment{
-					Usage:        linearValue,
+				usageSegments[pointId] = append(usageSegments[pointId], types.UsageSegment{
+					Usage:        helpers.CapUsageSegment(
+						usageSegments[pointId][1].Usage + firstSegmentUsage,
+					),
 					PricePerUnit: pricePerUnit,
-				}
+				})
+
+				
 
 				// Current segment is invalid, and we have more than 1 segments calculated before it
 			} else if curUsageIndex >= 1 {
