@@ -25,7 +25,9 @@ func main() {
 	var usageSegments = make(map[int][]types.UsageSegment)
 	var invalidUsageSegmentIndices = make(map[int][]int)
 	var mtrngPointUsgSegmentCounters = make(map[int]int)
-	var flagNextReadingWillBeInvalid bool
+	var flagSkipNextReading bool
+	var flagSetUsageSegmentInBuffer bool
+	var usageSegmentInBuffer int
 	//var results map[int]float64
 
 	for {
@@ -52,14 +54,24 @@ func main() {
 		nextReading = helpers.UnmarshalReadingPoint(nextReadingRaw)
 		pointId := currentReading.MeteringPointId
 		curUsageIndex := mtrngPointUsgSegmentCounters[pointId]
+		pricePerUnit := price_class_selector.GiveCorrectPrice(currentReading.CreatedAt, currentReading.ReadingValue)
 
 		// Flag found for this reading being invalid due to generating an invalid
 		// usage segment value
-		if flagNextReadingWillBeInvalid {
+		if flagSkipNextReading || flagSetUsageSegmentInBuffer {
+			if flagSetUsageSegmentInBuffer {
+				usageSegments[pointId] = append(usageSegments[pointId], types.UsageSegment{
+					Usage:        usageSegmentInBuffer,
+					PricePerUnit: pricePerUnit,
+				})
+				mtrngPointUsgSegmentCounters[pointId]++
+			}
+
 			lastReadingPoint = nextReading
-			flagNextReadingWillBeInvalid = false
 			lineCount++
-			mtrngPointUsgSegmentCounters[pointId]++
+
+			flagSkipNextReading = false
+			flagSetUsageSegmentInBuffer = false
 			continue
 		}
 
@@ -71,7 +83,6 @@ func main() {
 		}
 
 		calculatedUsageSegment = nextReading.ReadingValue - currentReading.ReadingValue
-		pricePerUnit := price_class_selector.GiveCorrectPrice(currentReading.CreatedAt, currentReading.ReadingValue)
 		isValidUsageSegment := usage_validator.IsValidUsageSegment(calculatedUsageSegment)
 
 		if isValidUsageSegment {
@@ -93,31 +104,25 @@ func main() {
 				usageSegments[pointId] = append(usageSegments[pointId], invalidUsageSegmentPlaceholder)
 				usageSegments[pointId] = append(usageSegments[pointId], invalidUsageSegmentPlaceholder)
 				invalidUsageSegmentIndices[pointId] = append(invalidUsageSegmentIndices[pointId], 0, 1)
-				flagNextReadingWillBeInvalid = true
+				flagSkipNextReading = true
 				lastReadingPoint = nextReading
 				continue
-
-			} else if curUsageIndex == 2 && len(invalidUsageSegmentIndices[pointId]) == 2 {
-				firstSegmentUsage := usageSegments[pointId][0].Usage
-				linearValue := helpers.CapUsageSegment(firstSegmentUsage)
-				usageSegments[pointId][curUsageIndex] = types.UsageSegment{
-					Usage:        linearValue,
-					PricePerUnit: pricePerUnit,
-				}
-
-				// TODO append current instead of index reference
-				usageSegments[pointId][curUsageIndex] = types.UsageSegment{
-					Usage:        linearValue,
-					PricePerUnit: pricePerUnit,
-				}
-
-				// Current segment is invalid, and we have more than 1 segments calculated before it
 			} else if curUsageIndex >= 1 {
+				if curUsageIndex == 1 {
+					if len(invalidUsageSegmentIndices[pointId]) == 0 {
+						usageSegments[pointId][0].Usage = -1
+						invalidUsageSegmentIndices[pointId] = append(invalidUsageSegmentIndices[pointId], 0)
+					}
+					usageSegments[pointId] = append(usageSegments[pointId], invalidUsageSegmentPlaceholder)
+					invalidUsageSegmentIndices[pointId] = append(invalidUsageSegmentIndices[pointId], 1, 2)
+					usageSegmentInBuffer = invalidUsageSegmentPlaceholder.Usage
+					flagSetUsageSegmentInBuffer = true
+
 				// There are 3 or more usage segments that were calculated before the current
 				// one. In this case, we can try to see if the last 2 usage segments before the
 				// current one and the invalidated one were valid, so that we can pull a linear
 				// line of usage using those values.
-				if curUsageIndex >= 3 {
+				} else if curUsageIndex >= 3 {
 					firstRefSegmentIndex := curUsageIndex - 3
 					secondRefSegmentIndex := curUsageIndex - 2
 
@@ -126,16 +131,19 @@ func main() {
 							usageSegments[pointId][secondRefSegmentIndex].Usage -
 								usageSegments[pointId][firstRefSegmentIndex].Usage
 
-						usageSegments[pointId][curUsageIndex-1].Usage = helpers.CapUsageSegment(
-							usageSegments[pointId][curUsageIndex-2].Usage + diffBetweenReferenceSegments,
-						)
+						usageSegments[pointId][curUsageIndex - 1].Usage = helpers.CapUsageSegment(usageSegments[pointId][secondRefSegmentIndex].Usage + diffBetweenReferenceSegments)
 
 						usageSegments[pointId] = append(usageSegments[pointId], types.UsageSegment{
-							Usage: helpers.CapUsageSegment(
+							Usage:        helpers.CapUsageSegment(
 								usageSegments[pointId][curUsageIndex-1].Usage + diffBetweenReferenceSegments,
 							),
 							PricePerUnit: pricePerUnit,
 						})
+
+						flagSetUsageSegmentInBuffer = true
+						usageSegmentInBuffer = helpers.CapUsageSegment(
+							usageSegments[pointId][curUsageIndex].Usage + diffBetweenReferenceSegments,
+						)
 					} else {
 						// If either one of the segments before were invalid, we cannot use those
 						// values to pull a linear line of usage. So we have to just continue and
@@ -149,7 +157,9 @@ func main() {
 
 						usageSegments[pointId] = append(usageSegments[pointId], invalidUsageSegmentPlaceholder)
 						invalidUsageSegmentIndices[pointId] = append(invalidUsageSegmentIndices[pointId],
-							curUsageIndex)
+							curUsageIndex, curUsageIndex+1)
+						usageSegmentInBuffer = -1
+						flagSetUsageSegmentInBuffer = true
 					}
 				}
 			}
@@ -166,8 +176,6 @@ func main() {
 		}
 		fmt.Printf("Count: %v\n", len(segments))
 	}
-
-	// Patch up all invalid usage segments
 
 	fmt.Println("Finished reading file")
 	err = inputFile.Close()
