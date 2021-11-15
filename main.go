@@ -3,10 +3,10 @@ package main
 import (
 	"encoding/csv"
 	"fmt"
+	"github.com/OussamaFadlaoui/EnekoEnergie/helpers"
 	"github.com/OussamaFadlaoui/EnekoEnergie/price_class_selector"
 	"github.com/OussamaFadlaoui/EnekoEnergie/types"
 	"github.com/OussamaFadlaoui/EnekoEnergie/usage_validator"
-	"github.com/OussamaFadlaoui/EnekoEnergie/utils/helpers"
 	"io"
 	"os"
 )
@@ -178,7 +178,7 @@ func main() {
 		fmt.Printf("Count: %v\n", len(segments))
 	}
 
-	
+	fmt.Println(invalidUsageSegmentIndices)
 
 	fmt.Println("Finished reading file")
 	err = inputFile.Close()
