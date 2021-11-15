@@ -33,3 +33,12 @@ func ArrContainsAny(haystack []int, needles ... int) bool {
 func ArrContainsNone(haystack []int, needles ... int) bool {
 	return !ArrContainsAny(haystack, needles...)
 }
+
+func RemoveFromArr(haystack []int, needle int) []int {
+	if needle < 0 || len(haystack) >= needle {
+		return haystack
+	}
+
+	haystack[needle] = haystack[len(haystack)-1]
+	return haystack[:len(haystack)-1]
+}
