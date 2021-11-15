@@ -23,7 +23,11 @@ func main() {
 	var nextReading types.ReadingPoint
 	var calculatedUsageSegment int
 	var usageSegments = make(map[int][]types.UsageSegment)
+
+	// TODO Refactor keeping track of these using boolean maps instead of int arrays for easy deletion
+	// (and performance improvements)
 	var invalidUsageSegmentIndices = make(map[int][]int)
+
 	var usageSegmentCounters = make(map[int]int)
 	var flagSkipNextReading bool
 	var flagSetUsageSegmentInBuffer bool
@@ -130,11 +134,11 @@ func main() {
 					usageSegmentInBuffer = invalidUsageSegmentPlaceholder.Usage
 					flagSetUsageSegmentInBuffer = true
 
-				// There are 3 or more usage segments that were calculated before the current
-				// one. In this case, we can try to see if the last 2 usage segments before the
-				// current one and the invalidated one were valid, so that we can pull a linear
-				// line of usage using those values.
 				} else if curUsageIndex >= 3 {
+					// There are 3 or more usage segments that were calculated before the current
+					// one. In this case, we can try to see if the last 2 usage segments before the
+					// current one and the invalidated one were valid, so that we can pull a linear
+					// line of usage using those values.
 					firstRefSegmentIndex := curUsageIndex - 3
 					secondRefSegmentIndex := curUsageIndex - 2
 
