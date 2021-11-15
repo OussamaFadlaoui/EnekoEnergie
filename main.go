@@ -54,7 +54,7 @@ func main() {
 		nextReading = helpers.UnmarshalReadingPoint(nextReadingRaw)
 		pointId := currentReading.MeteringPointId
 		curUsageIndex := mtrngPointUsgSegmentCounters[pointId]
-		pricePerUnit := price_class_selector.GiveCorrectPrice(currentReading.CreatedAt, currentReading.ReadingValue)
+		pricePerUnit := price_class_selector.GiveCorrectPrice(currentReading.CreatedAt, currentReading.MeteringTypeId)
 
 		// Flag found for this reading being invalid due to generating an invalid
 		// usage segment value
