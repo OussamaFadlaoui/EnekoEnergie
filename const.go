@@ -1,7 +1,7 @@
 package main
 
 const (
-	ReadingInputsFilePath = "resources/sample-data/sample1.csv"
+	ReadingInputsFilePath = "resources/sample-data/sample-data2.csv"
 
 	ErrorMsgReadingFile = "[Error] Something went wrong while processing a file"
 )

@@ -2,13 +2,13 @@ package helpers
 
 import (
 	"fmt"
-	"github.com/OussamaFadlaoui/EnekoEnergie/utils"
+	"github.com/OussamaFadlaoui/EnekoEnergie/types"
 	"os"
 	"strconv"
 )
 
 
-func UnmarshalReadingPoint(rawLine []string) utils.ReadingPoint {
+func UnmarshalReadingPoint(rawLine []string) types.ReadingPoint {
 	errorMsgParsing := "[Error] Could not unmarshal reading point into type ReadingPoint"
 
 	if len(rawLine) != 4 {
@@ -28,7 +28,7 @@ func UnmarshalReadingPoint(rawLine []string) utils.ReadingPoint {
 	createdAt, err := strconv.ParseInt(rawLine[3], 10, 64)
 	Check(err, errorMsgParsing)
 
-	return utils.ReadingPoint{
+	return types.ReadingPoint{
 		MeteringPointId: meteringPointId,
 		MeteringTypeId:  meteringTypeId,
 		ReadingValue:    readingValue,
