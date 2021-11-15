@@ -119,6 +119,24 @@ func main() {
 					usageSegmentInBuffer = invalidUsageSegmentPlaceholder.Usage
 					flagSetUsageSegmentInBuffer = true
 
+			} else if curUsageIndex == 2 && len(invalidUsageSegmentIndices[pointId]) == 0 {
+				firstSegmentUsage := usageSegments[pointId][0].Usage
+				usageSegments[pointId][1] = types.UsageSegment{
+					Usage:        helpers.CapUsageSegment(firstSegmentUsage),
+					PricePerUnit: pricePerUnit,
+				}
+
+				usageSegments[pointId] = append(usageSegments[pointId], types.UsageSegment{
+					Usage:        helpers.CapUsageSegment(
+						usageSegments[pointId][1].Usage + firstSegmentUsage,
+					),
+					PricePerUnit: pricePerUnit,
+				})
+
+				
+
+				// Current segment is invalid, and we have more than 1 segments calculated before it
+			} else if curUsageIndex >= 1 {
 				// There are 3 or more usage segments that were calculated before the current
 				// one. In this case, we can try to see if the last 2 usage segments before the
 				// current one and the invalidated one were valid, so that we can pull a linear
