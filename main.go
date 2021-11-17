@@ -202,6 +202,54 @@ func main() {
 		fmt.Printf("Count: %v\n", len(segments))
 	}
 
+	for pointId, invalidIndices := range invalidUsageSegmentIndices {
+		for invalidSegmentIndex, isInvalidSegment := range invalidIndices {
+			if !isInvalidSegment {
+				continue
+			}
+
+			flagPatchedUsingPreviousSegments := false
+
+			for i := invalidSegmentIndex - 1; i - 1 >= 0; i-- {
+				if invalidUsageSegmentIndices[pointId][i] && invalidUsageSegmentIndices[pointId][i - 1] {
+					continue
+				}
+
+				firstRefSegment := usageSegments[pointId][i]
+				secondRefSegment := usageSegments[pointId][i - 1]
+				diffBetweenSegments := secondRefSegment.Usage - firstRefSegment.Usage
+
+				invalidUsageSegmentIndices[pointId][invalidSegmentIndex] = false
+				usageSegments[pointId][invalidSegmentIndex].Usage = helpers.CapUsageSegment(secondRefSegment.Usage + diffBetweenSegments)
+
+				fmt.Printf("Found diff: %v", helpers.CapUsageSegment(secondRefSegment.Usage + diffBetweenSegments))
+
+				flagPatchedUsingPreviousSegments = true
+				break
+			}
+
+			if flagPatchedUsingPreviousSegments {
+				continue
+			}
+
+			for i := invalidSegmentIndex + 1; i + 1 <= len(usageSegments[pointId]); i++ {
+				if invalidUsageSegmentIndices[pointId][i] && invalidUsageSegmentIndices[pointId][i - 1] {
+					continue
+				}
+
+				firstRefSegment := usageSegments[pointId][i]
+				secondRefSegment := usageSegments[pointId][i + 1]
+				diffBetweenSegments := firstRefSegment.Usage - secondRefSegment.Usage
+
+				invalidUsageSegmentIndices[pointId][invalidSegmentIndex] = false
+				usageSegments[pointId][invalidSegmentIndex].Usage = helpers.CapUsageSegment(firstRefSegment.Usage + diffBetweenSegments)
+
+				flagPatchedUsingPreviousSegments = true
+				break
+			}
+		}
+	}
+
 	fmt.Println(invalidUsageSegmentIndices)
 
 	fmt.Println("Finished reading file")
