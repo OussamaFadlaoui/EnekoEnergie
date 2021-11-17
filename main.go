@@ -125,7 +125,6 @@ func main() {
 						),
 						PricePerUnit: pricePerUnit,
 					})
-				flagSetUsageSegmentInBuffer = true
 					usageSegmentInBuffer = helpers.CapUsageSegment(usageSegments[pointId][2].Usage + firstUsageSegment)
 				} else {
 					usageSegments[pointId] = append(usageSegments[pointId], invalidUsageSegmentPlaceholder)
