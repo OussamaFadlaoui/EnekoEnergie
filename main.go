@@ -69,6 +69,7 @@ func main() {
 					Usage:        usageSegmentInBuffer,
 					PricePerUnit: pricePerUnit,
 				})
+				usageSegmentCounters[pointId]++
 			}
 
 			lastReadingPoint = nextReading
@@ -108,21 +109,30 @@ func main() {
 				usageSegments[pointId] = append(usageSegments[pointId], invalidUsageSegmentPlaceholder)
 				invalidUsageSegmentIndices[pointId][0] = true
 				invalidUsageSegmentIndices[pointId][1] = true
-				usageSegmentCounters[pointId]++
+				usageSegmentCounters[pointId] += 2
 				flagSkipNextReading = true
 				lastReadingPoint = nextReading
 				continue
-			} else if curUsageIndex == 2 && len(invalidUsageSegmentIndices[pointId]) == 0 {
-				firstUsageSegment := usageSegments[pointId][0].Usage
-				usageSegments[pointId][1].Usage = helpers.CapUsageSegment(firstUsageSegment * 2)
-				usageSegments[pointId] = append(usageSegments[pointId], types.UsageSegment{
-					Usage:        helpers.CapUsageSegment(
-						usageSegments[pointId][1].Usage + firstUsageSegment,
-					),
-					PricePerUnit: pricePerUnit,
-				})
+			} else if curUsageIndex == 2 {
 				flagSetUsageSegmentInBuffer = true
-				usageSegmentInBuffer = helpers.CapUsageSegment(usageSegments[pointId][2].Usage + firstUsageSegment)
+
+				if len(invalidUsageSegmentIndices[pointId]) == 0 {
+					firstUsageSegment := usageSegments[pointId][0].Usage
+					usageSegments[pointId][1].Usage = helpers.CapUsageSegment(firstUsageSegment * 2)
+					usageSegments[pointId] = append(usageSegments[pointId], types.UsageSegment{
+						Usage: helpers.CapUsageSegment(
+							usageSegments[pointId][1].Usage + firstUsageSegment,
+						),
+						PricePerUnit: pricePerUnit,
+					})
+				flagSetUsageSegmentInBuffer = true
+					usageSegmentInBuffer = helpers.CapUsageSegment(usageSegments[pointId][2].Usage + firstUsageSegment)
+				} else {
+					usageSegments[pointId] = append(usageSegments[pointId], invalidUsageSegmentPlaceholder)
+					invalidUsageSegmentIndices[pointId][curUsageIndex] = true
+					invalidUsageSegmentIndices[pointId][curUsageIndex + 1] = true
+					usageSegmentInBuffer = -1
+				}
 			} else if curUsageIndex >= 1 {
 				if curUsageIndex == 1 {
 					if len(invalidUsageSegmentIndices[pointId]) == 0 {
