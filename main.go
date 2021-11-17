@@ -195,13 +195,6 @@ func main() {
 		usageSegmentCounters[pointId]++
 	}
 
-	for _, segments := range usageSegments {
-		for _, segment := range segments {
-			fmt.Printf("%+v\n", segment)
-		}
-		fmt.Printf("Count: %v\n", len(segments))
-	}
-
 	for pointId, invalidIndices := range invalidUsageSegmentIndices {
 		for invalidSegmentIndex, isInvalidSegment := range invalidIndices {
 			if !isInvalidSegment {
@@ -248,6 +241,13 @@ func main() {
 				break
 			}
 		}
+	}
+
+	for _, segments := range usageSegments {
+		for _, segment := range segments {
+			fmt.Printf("%+v\n", segment)
+		}
+		fmt.Printf("Count: %v\n", len(segments))
 	}
 
 	fmt.Println(invalidUsageSegmentIndices)
