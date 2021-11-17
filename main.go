@@ -233,7 +233,7 @@ func main() {
 			}
 
 			for i := invalidSegmentIndex + 1; i + 1 <= len(usageSegments[pointId]); i++ {
-				if invalidUsageSegmentIndices[pointId][i] && invalidUsageSegmentIndices[pointId][i - 1] {
+				if invalidUsageSegmentIndices[pointId][i] || invalidUsageSegmentIndices[pointId][i + 1] {
 					continue
 				}
 
